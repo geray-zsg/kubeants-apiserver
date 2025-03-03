@@ -41,3 +41,16 @@ git remote add origin https://github.com/geray-zsg/kubeants.git
 git branch -M main
 git push -u origin main
 ```
+
+# 有组名和无组名
+获取某deploy，方法GET(普通用户)      
+http://{{ks-apiserver}}/apis/clusters/<cluster>/apps/v1/namespaces/<namespace>/deployments/<deployment>
+查看指定namespace下的pod，方法GET(普通用户)
+http://{{ks-apiserver}}/api/clusters/<cluster>/v1/namespaces/<namespace>/pods
+
+# http的几种请求方式
+HEAD	类似 GET，但不返回响应体，只返回头部信息
+OPTIONS	用于获取服务器支持的 HTTP 方法列表
+PATCH	部分更新资源（区别于 PUT 的整体替换）
+TRACE	服务器回显收到的请求（主要用于诊断）
+CONNECT	建立隧道（通常用于 HTTPS 代理）
