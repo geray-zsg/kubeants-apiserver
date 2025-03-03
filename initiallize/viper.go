@@ -2,7 +2,7 @@ package initiallize
 
 import (
 	"github.com/spf13/viper"
-	"kubeant.cn/config"
+	"kubeants.com/config"
 )
 
 func Viper() {

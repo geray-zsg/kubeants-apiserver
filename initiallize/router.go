@@ -2,8 +2,8 @@ package initiallize
 
 import (
 	"github.com/gin-gonic/gin"
-	"kubeant.cn/middleware"
-	"kubeant.cn/router"
+	"kubeants.com/middleware"
+	"kubeants.com/router"
 )
 
 func Routers() *gin.Engine {

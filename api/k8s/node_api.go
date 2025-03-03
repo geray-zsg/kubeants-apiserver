@@ -6,8 +6,8 @@ import (
 	"github.com/gin-gonic/gin"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"kubeant.cn/config"
-	"kubeant.cn/response"
+	"kubeants.com/config"
+	"kubeants.com/response"
 )
 
 type NodeApi struct{}

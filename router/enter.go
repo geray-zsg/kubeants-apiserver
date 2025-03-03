@@ -1,8 +1,8 @@
 package router
 
 import (
-	"kubeant.cn/router/example"
-	"kubeant.cn/router/k8s"
+	"kubeants.com/router/example"
+	"kubeants.com/router/k8s"
 )
 
 type RouterGroup struct {

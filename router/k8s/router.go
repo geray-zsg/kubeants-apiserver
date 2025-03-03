@@ -2,7 +2,7 @@ package k8s
 
 import (
 	"github.com/gin-gonic/gin"
-	"kubeant.cn/api"
+	"kubeants.com/api"
 )
 
 type K8SRouter struct{}

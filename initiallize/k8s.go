@@ -3,7 +3,7 @@ package initiallize
 import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
-	kubeantconfig "kubeant.cn/config"
+	kubeantconfig "kubeants.com/config"
 )
 
 func K8S() {

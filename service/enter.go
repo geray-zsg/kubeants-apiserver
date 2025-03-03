@@ -1,8 +1,8 @@
 package service
 
 import (
-	"kubeant.cn/service/namespace"
-	"kubeant.cn/service/pod"
+	"kubeants.com/service/namespace"
+	"kubeants.com/service/pod"
 )
 
 type ServiceGroup struct {

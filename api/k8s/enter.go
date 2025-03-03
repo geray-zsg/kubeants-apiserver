@@ -1,6 +1,6 @@
 package k8s
 
-import "kubeant.cn/service"
+import "kubeants.com/service"
 
 type K8SApi struct {
 	PodApi

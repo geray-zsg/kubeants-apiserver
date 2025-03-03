@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"kubeant.cn/config"
+	"kubeants.com/config"
 
 	corev1 "k8s.io/api/core/v1"
 	k8serror "k8s.io/apimachinery/pkg/api/errors"
