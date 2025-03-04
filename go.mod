@@ -1,4 +1,4 @@
-module kubeants.com
+module kubeants.io
 
 go 1.22.3
 

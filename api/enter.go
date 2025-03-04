@@ -1,8 +1,8 @@
 package api
 
 import (
-	"kubeants.com/api/example"
-	"kubeants.com/api/k8s"
+	"kubeants.io/api/example"
+	"kubeants.io/api/k8s"
 )
 
 type ApiGroup struct {

@@ -1,21 +1,21 @@
 # 项目初始化
 ```
-go mod init kubeants.com
+go mod init kubeants.io
 go get -u github.com/gin-gonic/gin@v1.9.1
 ```
 
 # 修改项目域名
 1. 修改 go.mod 文件
 ```
-module kubeant.cn
+module kubeants.io
 # 改为目前域名
-module kubeants.com
+module kubeants.io
 ```
-2. 批量替换代码中的 import 语句 运行以下命令批量替换 import "kubeant.cn 为 import "kubeants.com：
+2. 批量替换代码中的 import 语句 运行以下命令批量替换 import "kubeant.cn 为 import "kubeants.io：
 ```
-grep -rl 'kubeant.cn' . | xargs sed -i 's|kubeant.cn|kubeants.com|g'
+grep -rl 'kubeants.io' . | xargs sed -i 's|kubeants.io|kubeants.io|g'
 # MacOS 用户请使用：
-grep -rl 'kubeant.cn' . | xargs sed -i '' 's|kubeant.cn|kubeants.com|g'
+grep -rl 'kubeant.cn' . | xargs sed -i '' 's|kubeant.cn|kubeants.io|g'
 ```
 3. 执行 go mod tidy 重新整理依赖
 ```
@@ -54,3 +54,20 @@ OPTIONS	用于获取服务器支持的 HTTP 方法列表
 PATCH	部分更新资源（区别于 PUT 的整体替换）
 TRACE	服务器回显收到的请求（主要用于诊断）
 CONNECT	建立隧道（通常用于 HTTPS 代理）
+
+# 查看原生k8s接口信息
+```
+kubectl proxy
+
+curl http://localhost:8001
+
+# 无组名
+curl http://localhost:8001/api/v1/
+
+# 有组名
+curl http://localhost:8001/apis/apps/
+
+curl http://localhost:8001/api/v1/namespaces
+curl http://localhost:8001/apis/apps/v1/deployments
+
+```

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"kubeants.com/config"
-	"kubeants.com/initiallize"
+	"kubeants.io/config"
+	"kubeants.io/initiallize"
 )
 
 func main() {

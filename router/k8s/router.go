@@ -2,13 +2,13 @@ package k8s
 
 import (
 	"github.com/gin-gonic/gin"
-	"kubeants.com/api"
+	"kubeants.io/api"
 )
 
 type K8SRouter struct{}
 
 func (*K8SRouter) InitK8SRouter(r *gin.Engine) {
-	group := r.Group("kapi")
+	group := r.Group("gapi")
 	// 统一使用client-go的ForResource 方案转发k8s原生接口
 	k8sResourceApiGroup := api.ApiGroupApp.K8sResourceApi
 	// 动态获取有组名的资源

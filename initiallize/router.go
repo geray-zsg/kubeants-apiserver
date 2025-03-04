@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"kubeants.com/middleware"
-	"kubeants.com/router"
+	"kubeants.io/middleware"
+	"kubeants.io/router"
 )
 
 func Routers() *gin.Engine {

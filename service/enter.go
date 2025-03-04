@@ -1,9 +1,9 @@
 package service
 
 import (
-	"kubeants.com/service/k8s"
-	"kubeants.com/service/namespace"
-	"kubeants.com/service/pod"
+	"kubeants.io/service/k8s"
+	"kubeants.io/service/namespace"
+	"kubeants.io/service/pod"
 )
 
 type ServiceGroup struct {

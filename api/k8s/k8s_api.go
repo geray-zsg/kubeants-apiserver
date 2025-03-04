@@ -11,7 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"kubeants.com/response"
+	"kubeants.io/response"
 )
 
 // ResourceApi 处理 Kubernetes 资源的 API

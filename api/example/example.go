@@ -2,7 +2,7 @@ package example
 
 import (
 	"github.com/gin-gonic/gin"
-	"kubeants.com/response"
+	"kubeants.io/response"
 )
 
 type ExampleTestApi struct{}
