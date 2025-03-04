@@ -10,7 +10,7 @@ import (
 )
 
 func K8S() {
-	var kubeconfig = ".kube/config"
+	var kubeconfig = "/root/.kube/config"
 
 	// use the current context in kubeconfig
 	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
