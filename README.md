@@ -47,6 +47,10 @@ git push -u origin main
 http://{{ks-apiserver}}/apis/clusters/<cluster>/apps/v1/namespaces/<namespace>/deployments/<deployment>
 查看指定namespace下的pod，方法GET(普通用户)
 http://{{ks-apiserver}}/api/clusters/<cluster>/v1/namespaces/<namespace>/pods
+	获取指定业务空间的配额，方法GET(平台管理员)
+http://{{ks-apiserver}}/kapis/clusters/<cluster>/tenant.kubesphere.io/v1alpha2/workspaces/<workspace>/resourcequotas/<workspace>
+kubeants user
+http://{{ks-apiserver}}/kapis/clusters/<cluster>/user.kubeants.io/v1beta1/
 
 # http的几种请求方式
 HEAD	类似 GET，但不返回响应体，只返回头部信息
@@ -69,5 +73,36 @@ curl http://localhost:8001/apis/apps/
 
 curl http://localhost:8001/api/v1/namespaces
 curl http://localhost:8001/apis/apps/v1/deployments
+curl http://localhost:8001/apis/apps/v1/namespaces/default/deployments/nginx-deployment
+curl http://localhost:8001/apis/user.kubeants.io/v1beta1
+curl http://localhost:8001/apis/rbac.authorization.k8s.io/v1/clusterroles/view
+curl http://localhost:8001/apis/user.kubeants.io/v1beta1/users
+curl http://localhost:8001/apis/user.kubeants.io/v1beta1/users/admin
+
+```
+
+- k8s原生接口
+```
+# 无组名，格式：/api/:version/:resource/*name 例如：
+curl http://localhost:8001/api/v1/namespaces
+
+# 有组名，格式：/apis/:group/:version/namespace/:namespace/:resource/*name
+curl http://localhost:8001/apis/apps/v1/deployments
+curl http://localhost:8001/apis/apps/v1/namespaces/default/deployments/nginx-deployment
+
+# 集群级别有组名，格式：/apis/:group/:version/:resource/*nane
+```
+
+- kubeants接口设计
+原生接口前使用/gapi/workspace/:workspace/cluster/:cluster + k8s原生接口
+```
+# 无组名，格式：/gapi/workspace/:workspace/cluster/:cluster/api/:version/:resource/*name; 例如：
+
+
+# 有组名，格式：/gapi/workspace/:workspace/cluster/:cluster/apis/:group/:version/namespace/:namespace/:resource/*name; 例如：
+
+
+# 集群级别有组名，格式：/gapi/workspace/:workspace/cluster/:cluster/apis/:group/:version/:resource/*nane; 例如：
+
 
 ```

@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"kubeants.io/response"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 // ResourceApi 处理 Kubernetes 资源的 API
@@ -20,7 +21,10 @@ type ResourceApi struct{}
 // ProxyHandler 代理所有 HTTP 方法
 func (*ResourceApi) ProxyHandler(c *gin.Context) {
 	ctx := context.TODO()
+	logger := log.FromContext(ctx)
+	logger.Info("处理请求")
 	cluster := c.Param("cluster")
+	workspace := c.Param("workspace")
 	group := c.Param("group")
 	version := c.Param("version")
 	resource := c.Param("resource")
@@ -28,9 +32,20 @@ func (*ResourceApi) ProxyHandler(c *gin.Context) {
 	name := c.Param("name")
 	// 使用 strings.Trim 函数去除开头和结尾的 '/'
 	name = strings.Trim(name, "/")
-	fmt.Println("Param name:", name)
+
+	logger.Info("收到请求",
+		"cluster", cluster,
+		"workspace", workspace,
+		"group", group,
+		"version", version,
+		"resource", resource,
+		"namespace", namespace,
+		"name", name,
+	)
+	// logger.Info("当前请求的参数", "cluster", cluster, "group", "workspace", workspace, "group", group, "version", version, "resource", resource, "namespace", namespace, "name", name)
 	if name != "" && !isValidKubernetesName(name) {
 		response.FailWithMessage(c, "name名称不符合k8s命名规范：1.名称只能包含小写字母、数字、连字符（-）和点（.）;2.名称必须以字母或数字开头和结尾;3.名称中的连字符（-）不能连续出现，且不能位于名称的开头或结尾;4.名称的长度必须在 1 到 63 个字符之间;5.名称不能以点（.）结尾。"+name)
+		logger.Info("请求错误", "命名不规范", name)
 		return
 	}
 
@@ -106,7 +121,7 @@ func (*ResourceApi) ProxyHandler(c *gin.Context) {
 	}
 }
 
-// GetResourcesHandler 通用资源查询
+// GetResourcesHandler 通用资源查询 ，已弃用
 func (*ResourceApi) GetResourcesHandler(c *gin.Context) {
 	ctx := context.TODO()
 	group := c.Param("group")
