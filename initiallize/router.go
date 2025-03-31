@@ -14,6 +14,11 @@ func Routers() *gin.Engine {
 
 	r.Use(middleware.Cors)
 	// r.Use(gin.LoggerWithFormatter(CustomLogFormatter))
+	group := r.Group("/gapi")
+	{
+		group.POST("login", middleware.LoginHandler)
+
+	}
 
 	exampleRouterGroup := router.RouterGroupApp.ExampleRouterGroup
 	k8sRouterGroup := router.RouterGroupApp.K8SRouterGroup

@@ -1,2 +1,6 @@
 system:
   port: ":8088"
+
+jwt:
+  secret: "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiSm9obiIsImFkbWluIjp0cnVlfQ.n-qvhsRi6C0zBGcKrMGv-qSZGUUssXTTbICvENxqDCjCL2ejSt62uTwemHZe4pLI_sNSr7FWEI2MKlqequemeg"
+  expiration: 7200  # // 单位：秒

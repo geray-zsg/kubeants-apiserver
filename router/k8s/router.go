@@ -18,7 +18,7 @@ func (*K8SRouter) InitK8SRouter(r *gin.Engine) {
 	// 动态获取无组名的资源
 	group.Any("/api/:version/:resource/*name", k8sResourceApiGroup.ProxyHandler)
 	// 无组名namespace级别，例如Pod
-	group.Any("/api/:version/namespace/:namespace/:resource/*name", k8sResourceApiGroup.ProxyHandler)
+	group.Any("/api/:version/namespaces/:namespace/:resource/*name", k8sResourceApiGroup.ProxyHandler)
 	// 动态获取有组名的资源
 	group.Any("/apis/:group/:version/namespaces/:namespace/:resource/*name", k8sResourceApiGroup.ProxyHandler)
 	// 集群界别资源有组名，无需单独提供接口，后端config.KubeDynamicClient.Resource(gvr).Namespace(namespace).Get(ctx, name, metav1.GetOptions{})  可根据提供的namespace为""自动过滤掉，例如：clusterrole

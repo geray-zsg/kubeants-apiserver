@@ -9,8 +9,14 @@ type System struct {
 	Port string `json:"port" yaml:"port"`
 }
 
+type JWT struct {
+	Secret     string `json:"secret" yaml:"secret"`
+	Expiration int    `json:"expiration" yaml:"expiration"`
+}
+
 type Server struct {
 	System System `json:"System" yaml:"system"`
+	JWT    JWT    `json:"JWT" yaml:"jwt"`
 }
 
 var (
