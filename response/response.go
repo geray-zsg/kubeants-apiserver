@@ -32,19 +32,19 @@ func SuccessWithDetailed(c *gin.Context, msg string, data any) {
 }
 
 func Fail(c *gin.Context) {
-	c.JSON(http.StatusFailedDependency, gin.H{
+	c.JSON(http.StatusInternalServerError, gin.H{
 		"code": fail,
 		"msg":  "失败！",
 	})
 }
 func FailWithMessage(c *gin.Context, msg string) {
-	c.JSON(http.StatusFailedDependency, gin.H{
+	c.JSON(http.StatusInternalServerError, gin.H{
 		"code": fail,
 		"msg":  msg,
 	})
 }
 func FailWithDetailed(c *gin.Context, msg string, data any) {
-	c.JSON(http.StatusFailedDependency, gin.H{
+	c.JSON(http.StatusInternalServerError, gin.H{
 		"code": fail,
 		"msg":  msg,
 		"data": data,

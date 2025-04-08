@@ -106,3 +106,16 @@ curl http://localhost:8001/apis/apps/v1/namespaces/default/deployments/nginx-dep
 
 
 ```
+
+
+💡 说明：
+HTTP 方法	Query 参数	是否列表	Kubernetes verb
+GET	无	true	list
+GET	无	false	get
+GET	watch=true	true/false	watch
+POST	无	-	create
+PUT	无	-	update
+PATCH	无	-	patch
+DELETE	name 为空	true	deletecollection
+DELETE	name 存在	false	delete
+CONNECT	无	-	connect (如 exec 等)

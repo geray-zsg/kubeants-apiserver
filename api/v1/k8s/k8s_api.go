@@ -11,10 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"kubeants.io/middleware"
 	"kubeants.io/response"
-	"kubeants.io/util"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
@@ -33,25 +30,6 @@ func (*ResourceApi) ProxyHandler(c *gin.Context) {
 	resource := c.Param("resource")
 	namespace := c.Param("namespace")
 	name := c.Param("name")
-
-	saToekn, exists := c.Get("sa_token") //获取携带认证信息的sa_token
-	verb := c.Request.Method
-
-	isResourceList := name == "" // 没有指定 name 就是列表请求
-	k8sVerb := util.HTTPMethodToK8sVerb(c.Request.Method, isResourceList, c.Request.URL.Query())
-	if !exists {
-		response.FailWithMessage(c, "未找到sa_token")
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
-		return
-	}
-
-	username, exists := c.Get("username")
-	if !exists {
-		response.FailWithMessage(c, "未找到username")
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
-		return
-	}
-
 	// 使用 strings.Trim 函数去除开头和结尾的 '/'
 	name = strings.Trim(name, "/")
 
@@ -64,34 +42,11 @@ func (*ResourceApi) ProxyHandler(c *gin.Context) {
 		"namespace", namespace,
 		"name", name,
 	)
-	// 构建GVR
-	gvr := schema.GroupVersionResource{
-		Group:    group,
-		Version:  version,
-		Resource: resource,
-	}
-
 	// logger.Info("当前请求的参数", "cluster", cluster, "group", "workspace", workspace, "group", group, "version", version, "resource", resource, "namespace", namespace, "name", name)
 	if name != "" && !isValidKubernetesName(name) {
 		response.FailWithMessage(c, "name名称不符合k8s命名规范：1.名称只能包含小写字母、数字、连字符（-）和点（.）;2.名称必须以字母或数字开头和结尾;3.名称中的连字符（-）不能连续出现，且不能位于名称的开头或结尾;4.名称的长度必须在 1 到 63 个字符之间;5.名称不能以点（.）结尾。"+name)
 		logger.Info("请求错误", "命名不规范", name)
 		return
-	}
-
-	// 调用方法验证saToken是否有相关权限
-	if username != "admin" {
-		allowed, err := middleware.CheckResourcePermission(ctx, saToekn.(string), gvr, k8sVerb, namespace)
-		if err != nil {
-			logger.Error(err, "验证权限失败")
-			response.FailWithMessage(c, "验证权限失败")
-			return
-		}
-		if !allowed {
-			logger.Info("权限不足,当前用户没有相关资源权限", "username:", username, "GVR:", gvr, "namespace:", namespace)
-			response.FailWithMessage(c, "当前用户没有相关资源权限")
-			return
-		}
-		logger.Info("权限验证通过", "username", username)
 	}
 
 	// 解析请求体（如果有）
@@ -112,7 +67,7 @@ func (*ResourceApi) ProxyHandler(c *gin.Context) {
 	}
 
 	// 识别 HTTP 方法并调用 Service 层
-	switch verb {
+	switch c.Request.Method {
 	case http.MethodGet:
 		if name == "" {
 			resources, err := resourceService.ListResources(ctx, cluster, group, version, resource, namespace)
@@ -166,19 +121,6 @@ func (*ResourceApi) ProxyHandler(c *gin.Context) {
 	}
 }
 
-// isValidKubernetesName 校验一个名称是否符合 Kubernetes 的命名规则
-func isValidKubernetesName(name string) bool {
-	// Kubernetes 名称的正则表达式
-	// 注意：这个正则表达式可能需要根据 Kubernetes 的实际规则进行调整
-	var validName = regexp.MustCompile(`^[a-z0-9]([-a-z0-9]*[a-z0-9])?$`)
-	// 长度检查
-	if len(name) < 1 || len(name) > 63 {
-		return false
-	}
-	// 校验名称是否匹配正则表达式
-	return validName.MatchString(name)
-}
-
 // GetResourcesHandler 通用资源查询 ，已弃用
 func (*ResourceApi) GetResourcesHandler(c *gin.Context) {
 	ctx := context.TODO()
@@ -197,4 +139,17 @@ func (*ResourceApi) GetResourcesHandler(c *gin.Context) {
 		"message": "success",
 		"data":    resources,
 	})
+}
+
+// isValidKubernetesName 校验一个名称是否符合 Kubernetes 的命名规则
+func isValidKubernetesName(name string) bool {
+	// Kubernetes 名称的正则表达式
+	// 注意：这个正则表达式可能需要根据 Kubernetes 的实际规则进行调整
+	var validName = regexp.MustCompile(`^[a-z0-9]([-a-z0-9]*[a-z0-9])?$`)
+	// 长度检查
+	if len(name) < 1 || len(name) > 63 {
+		return false
+	}
+	// 校验名称是否匹配正则表达式
+	return validName.MatchString(name)
 }

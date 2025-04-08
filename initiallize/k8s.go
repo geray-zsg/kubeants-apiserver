@@ -24,7 +24,6 @@ func K8S() {
 		fmt.Printf("Failed to create clientset: %v", err)
 		panic(err.Error())
 	}
-
 	kubeantconfig.KubeClientSet = clientSet
 
 	// create the dynamicClient

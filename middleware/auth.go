@@ -72,6 +72,7 @@ func LoginHandler(c *gin.Context) {
 	// 返回token
 	c.JSON(http.StatusOK, gin.H{
 		"username": loginRequest.Username,
+		"sa_token": saToken,
 		"token":    token,
 	})
 	logger.Info("User login", "current login user", loginRequest.Username)
@@ -86,7 +87,6 @@ func AuthMiddleware() gin.HandlerFunc {
 		if authHeader == "" {
 			logger.Error(gin.Error{Err: fmt.Errorf("authorization header is empty")}, "[认证失败] Authorization header is empty")
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authorization header missing"})
-			c.Abort()
 			return
 		}
 
@@ -119,9 +119,17 @@ func AuthMiddleware() gin.HandlerFunc {
 				return
 			}
 
+			// 生成token
+			token, err := generateJWTToken(username, password, saToken, getJWTExpiration())
+			if err != nil {
+				logger.Error(err, "Failed to generate JWT token")
+				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Internal error"})
+				return
+			}
 			// 认证通过，设置上下文并添加 SA Token
 			c.Set("username", username)
-			c.Set("Authorization", "Bearer "+saToken)
+			c.Set("sa_token", saToken) // 存储 sa_token 以便后续检查权限
+			c.Set("Authorization", "Bearer "+token)
 			c.Next()
 			return
 		}
@@ -133,7 +141,6 @@ func AuthMiddleware() gin.HandlerFunc {
 			if len(parts) != 2 || parts[0] != "Bearer" {
 				logger.Error(gin.Error{Err: fmt.Errorf("authorization header is not Bearer")}, "[认证失败] 请检查token是否是 Bearer 方式: Invalid token, please check if the token is Bearer format")
 				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid token, please check if the token is Bearer format"})
-				c.Abort()
 				return
 			}
 
@@ -149,9 +156,18 @@ func AuthMiddleware() gin.HandlerFunc {
 				return
 			}
 
-			if claims, ok := token.Claims.(jwt.MapClaims); ok {
-				c.Set("username", claims["username"])
+			claims, ok := token.Claims.(jwt.MapClaims)
+			if !ok {
+				logger.Error(gin.Error{Err: fmt.Errorf("invalid token claims")}, "[认证失败] Invalid token claims")
+				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid token claims"})
+				return
 			}
+
+			username := claims["username"].(string)
+			saToken := claims["sa_token"].(string) // 从 JWT 解析出 ServiceAccount Token
+
+			c.Set("username", username)
+			c.Set("sa_token", saToken) // 存储 sa_token 以便后续检查权限
 
 			c.Next()
 			return
