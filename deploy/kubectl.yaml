@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kubectl
+  labels:
+    app: kubectl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kubectl
+  template:
+    metadata:
+      labels:
+        app: kubectl
+    spec:
+      containers:
+        - name: kubectl
+          #image: rancher/kubectl:v1.23.17
+          image: registry.cn-hangzhou.aliyuncs.com/geray/kubectl:v1.23.17
+          command: ["sleep", "3600h"]
+
