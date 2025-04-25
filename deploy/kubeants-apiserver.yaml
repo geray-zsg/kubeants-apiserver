@@ -55,6 +55,10 @@ spec:
               mountPath: /config.yaml
               subPath: config.yaml
       dnsPolicy: ClusterFirst
+      hostAliases:
+        - ip: 172.17.142.147
+          hostnames: 
+            - lb.kubesphere.local
       restartPolicy: Always
       schedulerName: default-scheduler
       volumes:

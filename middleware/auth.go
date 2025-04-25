@@ -15,6 +15,8 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"kubeants.io/config"
+	"kubeants.io/response"
+	"kubeants.io/service"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
@@ -26,31 +28,41 @@ func getJWTExpiration() int {
 	return config.CONF.JWT.Expiration
 }
 
-// 定义User资源的GVR
+// 定义user资源的GVR
 var userGVR = schema.GroupVersionResource{
 	Group:    "user.kubeants.io",
 	Version:  "v1beta1",
 	Resource: "users",
 }
 
+// User represents a simple user model
+type User struct {
+	Username string `json:"username" binding:"required"` // 用户名
+	Password string `json:"password" binding:"required"` // 密码
+}
+
 // LoginHandler 用户登录接口
+// @Summary 用户登录接口: 验证用户登录信息并返回 JWT。
+// @Description 验证用户输入的用户名和密码，如果正确，则返回 JWT。
+// @Tags 用户
+// @Accept json
+// @Produce json
+// @Param request body User true "用户登录信息"
+// @Success 200 {object} map[string]interface{} "登陆成功"
+// @Router /gapi/login [post]
 func LoginHandler(c *gin.Context) {
 	ctx := context.TODO()
 	logger := log.FromContext(ctx)
-	var loginRequest struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
-	}
-
 	// 解析用户请求
-	if err := c.ShouldBindJSON(&loginRequest); err != nil {
+	var user User
+	if err := c.ShouldBindJSON(&user); err != nil {
 		logger.Error(err, "Failed to parse login request")
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	// 验证用户身份
-	isValid, saToken, err := validateLocalUser(loginRequest.Username, loginRequest.Password)
+	isValid, saToken, err := validateLocalUser(user.Username, user.Password)
 	if err != nil {
 		logger.Error(err, "Failed to validate user")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -62,7 +74,7 @@ func LoginHandler(c *gin.Context) {
 		return
 	}
 	// 生成JWT Token
-	token, err := generateJWTToken(loginRequest.Username, loginRequest.Password, saToken, getJWTExpiration())
+	token, err := generateJWTToken(user.Username, user.Password, saToken, getJWTExpiration())
 	if err != nil {
 		logger.Error(err, "Failed to generate JWT token")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -71,11 +83,12 @@ func LoginHandler(c *gin.Context) {
 
 	// 返回token
 	c.JSON(http.StatusOK, gin.H{
-		"username": loginRequest.Username,
-		"sa_token": saToken,
-		"token":    token,
+		"username": user.Username,
+		// "sa_token": saToken,
+
+		"token": token,
 	})
-	logger.Info("User login", "current login user", loginRequest.Username)
+	logger.Info("User login", "current login user", user.Username)
 }
 
 // AuthMiddleware 认证中间件
@@ -249,4 +262,33 @@ func generateJWTToken(username, password, saToken string, expiration int) (strin
 
 	// 使用密钥签名
 	return token.SignedString(getJWTKey())
+}
+
+// GetUserInfo 用户信息
+// @Summary 认证通过后返回用户信息。
+// @Description 验证用户输入的用户名和密码，如果正确，则返回 JWT。
+// @Tags 用户
+// @Accept json
+// @Produce json
+// @Success 200 {object} map[string]interface{} "登陆成功"
+// @Router /gapi/user/info [get]
+func GetUserInfo(c *gin.Context) {
+	ctx := context.TODO()
+	logger := log.FromContext(ctx)
+	// 从请求载荷中提取username
+	username := c.Param("username")
+
+	gvr := schema.GroupVersionResource{
+		Group:    "user.kubeants.io",
+		Version:  "v1beta1",
+		Resource: "users",
+	}
+
+	logger.Info("获取用户信息", "用户名", username)
+	userObj, err := service.ServiceGroupApp.ResourceServiceGroup.GetResource(ctx, "", gvr.Group, gvr.Version, gvr.Resource, "", username)
+	if err != nil {
+		response.FailWithMessage(c, err.Error())
+		return
+	}
+	response.SuccessWithDetailed(c, "用户信息获取成功", userObj)
 }
