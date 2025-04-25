@@ -34,7 +34,7 @@ func Routers() *gin.Engine {
 
 	userGroup := group.Group("/user")
 	userGroup.Use(middleware.AuthMiddleware())
-	userGroup.GET("/info", middleware.GetUserInfo)
+	userGroup.GET("/info/:username", middleware.GetUserInfo)
 
 	exampleRouterGroup := router.RouterGroupApp.ExampleRouterGroup
 	k8sRouterGroup := router.RouterGroupApp.K8SRouterGroup

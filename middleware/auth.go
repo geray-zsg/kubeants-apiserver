@@ -15,8 +15,10 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"kubeants.io/config"
+	"kubeants.io/models"
 	"kubeants.io/response"
 	"kubeants.io/service"
+	"kubeants.io/util"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
@@ -271,7 +273,7 @@ func generateJWTToken(username, password, saToken string, expiration int) (strin
 // @Accept json
 // @Produce json
 // @Success 200 {object} map[string]interface{} "登陆成功"
-// @Router /gapi/user/info [get]
+// @Router /gapi/user/info/{username} [get]
 func GetUserInfo(c *gin.Context) {
 	ctx := context.TODO()
 	logger := log.FromContext(ctx)
@@ -285,10 +287,21 @@ func GetUserInfo(c *gin.Context) {
 	}
 
 	logger.Info("获取用户信息", "用户名", username)
-	userObj, err := service.ServiceGroupApp.ResourceServiceGroup.GetResource(ctx, "", gvr.Group, gvr.Version, gvr.Resource, "", username)
+	userUnstructured, err := service.ServiceGroupApp.ResourceServiceGroup.GetResource(ctx, "", gvr.Group, gvr.Version, gvr.Resource, "", username)
 	if err != nil {
 		response.FailWithMessage(c, err.Error())
 		return
 	}
-	response.SuccessWithDetailed(c, "用户信息获取成功", userObj)
+
+	// 将 userunstructured 转换为 User 结构体
+	var user models.User
+	if err := util.UnstructuredToStruct(userUnstructured, &user); err != nil {
+		logger.Error(err, "结构转换失败")
+		return
+	}
+
+	// 移除user中的password
+	user.Spec.Password = ""
+
+	response.SuccessWithDetailed(c, "用户信息获取成功", user)
 }

@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"gopkg.in/yaml.v2"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
 func RequestUnmarshalForJSONORYAML[T any](c *gin.Context) (*T, error) {
@@ -68,4 +69,13 @@ func HTTPMethodToK8sVerb(method string, isResourceList bool, queryParams map[str
 	}
 
 	return ""
+}
+
+// 辅助函数：将 Unstructured 转换为目标结构体
+func UnstructuredToStruct(u *unstructured.Unstructured, out interface{}) error {
+	data, err := u.MarshalJSON()
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(data, out)
 }

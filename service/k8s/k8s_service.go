@@ -46,7 +46,6 @@ func (s *ResourceService) ListResources(ctx context.Context, cluster, group, ver
 
 // GetResource 获取单个资源
 func (s *ResourceService) GetResource(ctx context.Context, cluster, group, version, resource, namespace, name string) (*unstructured.Unstructured, error) {
-
 	gvr := getGVR(group, version, resource)
 	return config.KubeDynamicClient.Resource(gvr).Namespace(namespace).Get(ctx, name, metav1.GetOptions{})
 }
