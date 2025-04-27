@@ -205,21 +205,27 @@ func validateLocalUser(username, password string) (isTrue bool, token string, er
 	// 获取 bcrypt 加密后的密码哈希
 	passwordHash, found, _ := unstructured.NestedString(user.UnstructuredContent(), "spec", "password")
 	if !found {
-		fmt.Printf("Password not found in user spec,k8s资源user[%v]中没有对应password字段", user)
-		return false, "", fmt.Errorf("password not found in user spec,k8s资源user[%v]中没有对应password字段: %w", username, err)
+		fmt.Printf("✅ Password not found in user spec,k8s资源user[%v]中没有对应password字段", user)
+		return false, "", fmt.Errorf("❌ password not found in user spec,k8s资源user[%v]中没有对应password字段: %w", username, err)
 	}
 
 	// 使用 bcrypt 验证密码
 	err = bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(password))
 	if err != nil {
-		fmt.Println("Password verification failed[密码不正确，请检查您的密码]:", err)
-		return false, "", fmt.Errorf("password verification failed[密码不正确，请检查您的密码]: %w", err)
+		fmt.Println("✅ Password verification failed[密码不正确，请检查您的密码]:", err)
+		return false, "", fmt.Errorf("❌ password verification failed[密码不正确，请检查您的密码]: %w", err)
 	}
 
 	// 获取 ServiceAccount 名称
 	saName, found, _ := unstructured.NestedString(user.UnstructuredContent(), "status", "serviceAccount")
 	if !found || saName == "" {
-		return false, "", fmt.Errorf("serviceAccount not found in user status")
+		return false, "", fmt.Errorf("❌ serviceAccount not found in user status")
+	}
+	// 获取 ServiceAccount 所在namespace
+	saNamespace, found, _ := unstructured.NestedString(user.UnstructuredContent(), "status", "serviceAccount")
+	if !found || saNamespace == "" {
+		fmt.Printf("✅ user[%v] status 中没有对应serviceAccount namespace字段，默认使用kubeants-system", username)
+		saNamespace = "kubeants-system"
 	}
 
 	// 查询 ServiceAccount 的 Secret，获取 Token
@@ -234,14 +240,14 @@ func validateLocalUser(username, password string) (isTrue bool, token string, er
 // getSAToken 获取 ServiceAccount 的 Token
 func getSAToken(saName string) (token string, err error) {
 	// 获取sa
-	sa, err := config.KubeClientSet.CoreV1().ServiceAccounts("default").Get(context.TODO(), saName, v1.GetOptions{})
+	sa, err := config.KubeClientSet.CoreV1().ServiceAccounts("kubeants-system").Get(context.TODO(), saName, v1.GetOptions{})
 	if err != nil {
 		return "", fmt.Errorf("failed to get ServiceAccount: %w", err)
 	}
 
 	// 获取关联的Secret
 	for _, secret := range sa.Secrets {
-		secretObj, err := config.KubeClientSet.CoreV1().Secrets("default").Get(context.TODO(), secret.Name, v1.GetOptions{})
+		secretObj, err := config.KubeClientSet.CoreV1().Secrets("kubeants-system").Get(context.TODO(), secret.Name, v1.GetOptions{})
 		if err != nil {
 			return "", fmt.Errorf("failed to get secret: %w", err)
 		}
