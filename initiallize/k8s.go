@@ -17,7 +17,7 @@ func K8S() {
 	if err != nil {
 		panic(err.Error())
 	}
-
+	fmt.Println("kubeconfig apiserverHost:", config.Host)
 	// create the clientset
 	clientSet, err := kubernetes.NewForConfig(config)
 	if err != nil {
@@ -33,5 +33,7 @@ func K8S() {
 		panic(err.Error())
 	}
 	kubeantconfig.KubeDynamicClient = dynameicClient
+
+	kubeantconfig.Kubeconfig = config.Host
 
 }

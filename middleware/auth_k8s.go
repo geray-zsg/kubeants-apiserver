@@ -9,6 +9,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	"kubeants.io/config"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
@@ -51,9 +52,9 @@ func CheckResourcePermission(ctx context.Context, saToken string, gvr schema.Gro
 
 // 用 saToken 生成 clientSet
 func NewClientWithSAToken(saToken string) (*kubernetes.Clientset, error) {
-
+	// fmt.Println("kubeconfig.cluster.server:", config.Kubeconfig)
 	config := &rest.Config{
-		Host:        "https://127.0.0.1:36633", // 这里从已有的配置中获取 API Server 地址
+		Host:        config.Kubeconfig, // 这里从已有的配置中获取 API Server 地址
 		BearerToken: saToken,
 		TLSClientConfig: rest.TLSClientConfig{
 			Insecure: true, // 若使用自签名证书，可设为 true

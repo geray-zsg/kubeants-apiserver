@@ -24,4 +24,5 @@ var (
 	// 定义clientset全局变量用于任何地方都可以直接调用，再initiallize/k8s.go 中赋值
 	KubeClientSet     *kubernetes.Clientset
 	KubeDynamicClient dynamic.Interface
+	Kubeconfig        string
 )
