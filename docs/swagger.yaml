@@ -37,7 +37,39 @@ paths:
       summary: '用户登录接口: 验证用户登录信息并返回 JWT。'
       tags:
       - 用户
-  /gapi/user/info:
+  /gapi/user/{username}/workspaceslist:
+    get:
+      consumes:
+      - application/json
+      description: 验证用户输入的用户名和密码或JWTtoekn，如果正确，则返回数据。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 用户的workspace列表获取成功
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 认证通过后返回用户信息。
+      tags:
+      - 用户
+  /gapi/user/info/{username}:
+    get:
+      consumes:
+      - application/json
+      description: 验证用户输入的用户名和密码，如果正确，则返回 JWT。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 登陆成功
+          schema:
+            additionalProperties: true
+            type: object
+      summary: 认证通过后返回用户信息。
+      tags:
+      - 用户
+  /gapi/workspace/{workspace}/userlist:
     get:
       consumes:
       - application/json

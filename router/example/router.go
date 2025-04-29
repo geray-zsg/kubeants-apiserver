@@ -8,7 +8,7 @@ import (
 type ExampleRouter struct{}
 
 func (ExampleRouter) InitExample(r *gin.Engine) {
-	group := r.Group("example")
+	group := r.Group("/gapi/system/")
 	apiGroup := api.ApiGroupApp.ExampleApiGroup
 	group.GET("ping", apiGroup.ExampleTest)
 }

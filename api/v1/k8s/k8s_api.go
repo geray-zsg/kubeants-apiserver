@@ -69,8 +69,9 @@ func (*ResourceApi) ProxyHandler(c *gin.Context) {
 	// 识别 HTTP 方法并调用 Service 层
 	switch c.Request.Method {
 	case http.MethodGet:
+		labelSelector := c.Query("labelSelector")
 		if name == "" {
-			resources, err := resourceService.ListResources(ctx, cluster, group, version, resource, namespace)
+			resources, err := resourceService.ListResources(ctx, cluster, group, version, resource, namespace, labelSelector)
 			if err != nil {
 				response.FailWithMessage(c, err.Error())
 				return

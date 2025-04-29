@@ -1,3 +1,4 @@
+// /service/k8s/k8s_service.go
 package k8s
 
 import (
@@ -38,10 +39,28 @@ func (*ResourceService) Resources(ctx context.Context, group, version, resource 
 }
 
 // ListResources 获取资源列表
-func (s *ResourceService) ListResources(ctx context.Context, cluster, group, version, resource, namespace string) (*unstructured.UnstructuredList, error) {
+func (s *ResourceService) ListResources(ctx context.Context, cluster, group, version, resource, namespace, labelSelector string) (*unstructured.UnstructuredList, error) {
 
 	gvr := getGVR(group, version, resource)
-	return config.KubeDynamicClient.Resource(gvr).Namespace(namespace).List(ctx, metav1.ListOptions{})
+	listOptions := metav1.ListOptions{}
+	if labelSelector != "" {
+		listOptions.LabelSelector = labelSelector
+	}
+
+	// fmt.Println("listOptions---------->:", listOptions)
+
+	return config.KubeDynamicClient.Resource(gvr).Namespace(namespace).List(ctx, listOptions)
+}
+
+// ListResourcesByLabelSelector 通过Label选择器表达式获取资源列表
+func (s *ResourceService) ListResourcesByLabelSelector(ctx context.Context, cluster, group, version, resource, namespace, labelSelector string) (*unstructured.UnstructuredList, error) {
+	gvr := getGVR(group, version, resource)
+
+	listOptions := metav1.ListOptions{
+		LabelSelector: labelSelector,
+	}
+
+	return config.KubeDynamicClient.Resource(gvr).Namespace(namespace).List(ctx, listOptions)
 }
 
 // GetResource 获取单个资源

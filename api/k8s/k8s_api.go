@@ -1,3 +1,4 @@
+// /api/k8s/k8s_api.go
 package k8s
 
 import (
@@ -126,6 +127,17 @@ func parseRequestParams(ctx context.Context, c *gin.Context) (*requestParams, er
 	version := c.Param("version")
 	resource := c.Param("resource")
 
+	logger.Info("请求详情",
+		"cluster", c.Param("cluster"),
+		"workspace", c.Param("workspace"),
+		"group", group,
+		"version", version,
+		"resource", resource,
+		"namespace", c.Param("namespace"),
+		"name", name,
+		"query", c.Request.URL.RawQuery,
+	)
+
 	return &requestParams{
 		Cluster:   c.Param("cluster"),
 		Workspace: c.Param("workspace"),
@@ -175,13 +187,21 @@ func parseRequestBody(c *gin.Context, obj *unstructured.Unstructured) error {
 
 // ========== 不同方法的处理逻辑 ==========
 func handleGet(ctx context.Context, c *gin.Context, p *requestParams) {
+	labelSelector := c.Query("labelSelector")
+	log.FromContext(ctx).Info("DEBUG selector", "labelSelector", labelSelector)
+
 	if p.IsList {
-		list, err := resourceService.ListResources(ctx, p.Cluster, p.Group, p.Version, p.Resource, p.Namespace)
+		list, err := resourceService.ListResources(ctx, p.Cluster, p.Group, p.Version, p.Resource, p.Namespace, labelSelector)
 		if err != nil {
 			response.FailWithMessage(c, err.Error())
 			return
 		}
-		c.JSON(http.StatusOK, list)
+		resp := gin.H{
+			"items":      list,
+			"totalItems": len(list.Items),
+		}
+		c.JSON(http.StatusOK, resp)
+		// c.JSON(http.StatusOK, list)
 	} else {
 		obj, err := resourceService.GetResource(ctx, p.Cluster, p.Group, p.Version, p.Resource, p.Namespace, p.Name)
 		if err != nil {

@@ -50,7 +50,55 @@ const docTemplate = `{
                 }
             }
         },
-        "/gapi/user/info": {
+        "/gapi/user/info/{username}": {
+            "get": {
+                "description": "验证用户输入的用户名和密码，如果正确，则返回 JWT。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户"
+                ],
+                "summary": "认证通过后返回用户信息。",
+                "responses": {
+                    "200": {
+                        "description": "登陆成功",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/gapi/user/{username}/workspaceslist": {
+            "get": {
+                "description": "验证用户输入的用户名和密码或JWTtoekn，如果正确，则返回数据。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户"
+                ],
+                "summary": "认证通过后返回用户信息。",
+                "responses": {
+                    "200": {
+                        "description": "用户的workspace列表获取成功",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/gapi/workspace/{workspace}/userlist": {
             "get": {
                 "description": "验证用户输入的用户名和密码，如果正确，则返回 JWT。",
                 "consumes": [

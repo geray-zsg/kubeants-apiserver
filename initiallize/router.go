@@ -28,18 +28,20 @@ func Routers() *gin.Engine {
 		docs.SwaggerInfo.BasePath = "/gapi"
 
 		group.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-		group.POST("login", middleware.LoginHandler)
+		group.POST("/system/login", middleware.LoginHandler)
 
 	}
 
-	userGroup := group.Group("/user")
+	userGroup := group.Group("/system")
 	userGroup.Use(middleware.AuthMiddleware())
-	userGroup.GET("/info/:username", middleware.GetUserInfo)
+	userGroup.GET("/userinfo/:username", middleware.GetUserInfo)
 
 	exampleRouterGroup := router.RouterGroupApp.ExampleRouterGroup
 	k8sRouterGroup := router.RouterGroupApp.K8SRouterGroup
+	kaRouterGroup := router.RouterGroupApp.KaRouterGroup
 	exampleRouterGroup.InitExample(r)
 	k8sRouterGroup.InitK8SRouter(r)
+	kaRouterGroup.InitKaRouter(r)
 
 	return r
 }

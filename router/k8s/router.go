@@ -24,21 +24,4 @@ func (*K8SRouter) InitK8SRouter(r *gin.Engine) {
 	// 集群界别资源有组名，无需单独提供接口，后端config.KubeDynamicClient.Resource(gvr).Namespace(namespace).Get(ctx, name, metav1.GetOptions{})  可根据提供的namespace为""自动过滤掉，例如：clusterrole
 	group.Any("/apis/:group/:version/:resource/*name", k8sResourceApiGroup.ProxyHandler)
 
-	// 下面是对每个k8s资源封装的接口，后期弃用
-	// apiGroup := api.ApiGroupApp.K8SApiGroup
-	// group.GET("pods", apiGroup.GetAllPods)
-	// group.GET("pods/:namespace", apiGroup.GetPodsInNamespaceORDerail)
-	// group.GET("pods/:namespace/:name", apiGroup.GetPodsInNamespaceORDerail)
-
-	// group.POST("pods", apiGroup.CreateOrUpdatePod)
-	// group.POST("pods/:namespace", apiGroup.CreateOrUpdatePod)
-	// group.DELETE("pods/:namespace/:name", apiGroup.DeletePod)
-
-	// group.GET("namespace", apiGroup.GetNamespaceList)
-	// group.GET("namespace/:name", apiGroup.GetNamespaceList)
-
-	// group.DELETE("namespace/:name", apiGroup.DeleteNamespace)
-
-	// group.GET("node", apiGroup.GetNodeListOrDetail)
-	// group.GET("node/:name", apiGroup.GetNodeListOrDetail)
 }
