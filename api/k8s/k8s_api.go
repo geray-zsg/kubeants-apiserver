@@ -55,16 +55,42 @@ func (*ResourceApi) ProxyHandler(c *gin.Context) {
 
 	// 2. 非 admin 用户权限校验
 	if params.Username != "admin" {
-		allowed, err := middleware.CheckResourcePermission(ctx, params.SAToken, params.GVR, params.K8sVerb, params.Namespace)
-		if err != nil {
-			logger.Error(err, "权限校验出错")
-			response.FailWithMessage(c, "权限校验失败")
-			return
+		// 定义豁免检查的资源组
+		exemptGroups := map[string]bool{
+			"workspace.kubeants.io":   true,
+			"userbinding.kubeants.io": true,
 		}
-		if !allowed {
-			logger.Info("权限不足，当前用户无访问该资源权限")
-			response.FailWithMessage(c, "权限不足，当前用户无访问该资源权限")
-			return
+		// 如果资源属于豁免组，检查请求方法
+		if exemptGroups[params.GVR.Group] {
+			// 允许 GET 和 LIST 方法跳过权限校验
+			if params.K8sVerb != "get" && params.K8sVerb != "list" {
+				// 非 GET/LIST 方法，进行权限校验
+				allowed, err := middleware.CheckResourcePermission(ctx, params.SAToken, params.GVR, params.K8sVerb, params.Namespace)
+				if err != nil {
+					logger.Error(err, "权限校验出错")
+					response.FailWithMessage(c, "权限校验失败")
+					return
+				}
+				if !allowed {
+					logger.Info("权限不足，当前用户无访问该资源权限")
+					response.FailWithMessage(c, "权限不足，当前用户无访问该资源权限")
+					return
+				}
+			}
+		} else {
+
+			// 非豁免资源，进行权限校验,k8s资源权限校验
+			allowed, err := middleware.CheckResourcePermission(ctx, params.SAToken, params.GVR, params.K8sVerb, params.Namespace)
+			if err != nil {
+				logger.Error(err, "权限校验出错")
+				response.FailWithMessage(c, "权限校验失败")
+				return
+			}
+			if !allowed {
+				logger.Info("权限不足，当前用户无访问该资源权限")
+				response.FailWithMessage(c, "权限不足，当前用户无访问该资源权限")
+				return
+			}
 		}
 	}
 
