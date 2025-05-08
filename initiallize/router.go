@@ -4,9 +4,11 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"kubeants.io/config"
 	"kubeants.io/docs"
 	"kubeants.io/middleware"
 	"kubeants.io/router"
@@ -15,7 +17,11 @@ import (
 func Routers() *gin.Engine {
 	r := gin.Default()
 
-	r.Use(middleware.Cors)
+	if config.CONF.Cors.Enable {
+		r.Use(middleware.Cors)
+	} else {
+		r.Use(cors.Default())
+	}
 
 	// r.Use(gin.LoggerWithFormatter(CustomLogFormatter))
 	group := r.Group("/gapi")
