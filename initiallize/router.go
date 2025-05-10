@@ -1,6 +1,7 @@
 package initiallize
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
@@ -15,11 +16,16 @@ import (
 )
 
 func Routers() *gin.Engine {
-	r := gin.Default()
+	// r := gin.Default()
+	r := gin.New()
+	r.RedirectTrailingSlash = false // 禁用自动斜杠重定向
+	r.Use(gin.Logger(), gin.Recovery())
 
 	if config.CONF.Cors.Enable {
+		fmt.Printf("使用使用配置文件中的跨域配置:%v \n", config.CONF.Cors.Enable)
 		r.Use(middleware.Cors)
 	} else {
+		fmt.Printf("使用使用配置文件中的跨域配置，如果是false则使用cors.Default():%v \n", config.CONF.Cors.Enable)
 		r.Use(cors.Default())
 	}
 

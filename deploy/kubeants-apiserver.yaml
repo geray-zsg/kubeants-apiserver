@@ -9,15 +9,29 @@
 #   namespace: kubeants-system
 # type: Opaque
 ---
+# kubectl create cm kubeants-apiserver -n kubeants-system --from-file=config.yaml
 apiVersion: v1
 data:
-  config.yaml: |-
+  config.yaml: |
     system:
       port: ":8080"
 
     jwt:
-      secret: "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiSm9obiIsImFkbWluIjp0cnVlfQ.n-qvhsRi6C0zBGcKrMGv-qSZGUUssXTTbICvENxqDCjCL2ejSt62uTwemHZe4pLI_sNSr7FWEI2MKlqequemeg"
-      expiration: 7200  # // 单位：秒
+      secret: "xxx"  # 建议只保存密钥，不要存 token 全文
+      expiration: 7200  # 单位：秒
+
+    cors:
+      enable: true
+      allowedOrigins:
+        - "http://localhost:9528"
+        - "http://127.0.0.1:8080"
+        - "http://kubeants-apiserver.kubeants-system"
+        - "http://172.17.142.147:30001"
+      defaultOrigins: "http://localhost:9528"  # 默认允许的 Origin，建议开发环境使用 localhost
+      accessControlAllowCredentials: "true"
+      accessControlAllowHeaders: "Content-Type,AccessToken,X-CSRF-Token, Authorization, Token,X-Token,X-User-Id"
+      accessControlAllowMethods: "POST, GET, OPTIONS, DELETE, PUT"
+      accessControlExposeHeaders: "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Content-Type, New-Token, New-Expires-At"
 kind: ConfigMap
 metadata:
   name: kubeants-apiserver
@@ -44,7 +58,7 @@ spec:
         runAsUser: 0  # 以 root 用户运行
         runAsGroup: 0
       containers:
-        - image: "registry.cn-hangzhou.aliyuncs.com/geray/kubeants-apiserver:v1.6.2"
+        - image: "registry.cn-hangzhou.aliyuncs.com/geray/kubeants-apiserver:v1.7.0"
           imagePullPolicy: IfNotPresent
           name: kubeants-apiserver
           volumeMounts:

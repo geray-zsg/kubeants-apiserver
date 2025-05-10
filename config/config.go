@@ -6,18 +6,25 @@ import (
 )
 
 type System struct {
-	Port string `json:"port" yaml:"port"`
+	Port string `json:"port" yaml:"port" mapstructure:"port"`
 }
 
 type JWT struct {
-	Secret     string `json:"secret" yaml:"secret"`
-	Expiration int    `json:"expiration" yaml:"expiration"`
+	Secret     string `json:"secret" yaml:"secret" mapstructure:"secret"`
+	Expiration int    `json:"expiration" yaml:"expiration" mapstructure:"expiration"`
+}
+
+type Log struct {
+	Level  string `mapstructure:"level" json:"level" yaml:"level"`    // debug, info, warn, error
+	Format string `mapstructure:"format" json:"format" yaml:"format"` // console 开发 或 json
+	File   string `mapstructure:"file" json:"file" yaml:"file"`       // 日志写入文件路径
 }
 
 type Server struct {
-	System System `json:"System" yaml:"system"`
-	JWT    JWT    `json:"JWT" yaml:"jwt"`
-	Cors   Cors   `yaml:"cors" json:"cors"`
+	System System `mapstructure:"system"`
+	JWT    JWT    `mapstructure:"jwt"`
+	Cors   Cors   `mapstructure:"cors"`
+	Log    Log    `mapstructure:"log"`
 }
 
 /*
@@ -27,13 +34,13 @@ accessControlAllowMethods: "POST, GET, OPTIONS,DELETE,PUT" # 指定服务器允�
 accessControlExposeHeaders: "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Content-Type, New-Token, New-Expires-At" # 指定哪些HTTP头部可以作为响应的一部分暴露给外部
 */
 type Cors struct {
-	Enable                        bool     `yaml:"enable" json:"enable"`
-	DefaultOrigins                string   `yaml:"defaultOrigins" json:"defaultOrigins"`
-	AllowedOrigins                []string `yaml:"allowedOrigins" json:"allowedOrigins"`
-	AccessControlAllowCredentials string   `yaml:"accessControlAllowCredentials" json:"accessControlAllowCredentials"`
-	AccessControlAllowHeaders     string   `yaml:"accessControlAllowHeaders" json:"accessControlAllowHeaders"`
-	AccessControlAllowMethods     string   `yaml:"accessControlAllowMethods" json:"accessControlAllowMethods"`
-	AccessControlExposeHeaders    string   `yaml:"accessControlExposeHeaders" json:"accessControlExposeHeaders"`
+	Enable                        bool     `mapstructure:"enable"`
+	DefaultOrigins                string   `mapstructure:"defaultOrigins"`
+	AllowedOrigins                []string `mapstructure:"allowedOrigins"`
+	AccessControlAllowCredentials string   `mapstructure:"accessControlAllowCredentials"`
+	AccessControlAllowHeaders     string   `mapstructure:"accessControlAllowHeaders"`
+	AccessControlAllowMethods     string   `mapstructure:"accessControlAllowMethods"`
+	AccessControlExposeHeaders    string   `mapstructure:"accessControlExposeHeaders"`
 }
 
 var (

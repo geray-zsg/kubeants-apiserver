@@ -16,6 +16,7 @@ import (
 	"kubeants.io/middleware"
 	"kubeants.io/response"
 	"kubeants.io/util"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
@@ -43,6 +44,9 @@ type requestParams struct {
 func (*ResourceApi) ProxyHandler(c *gin.Context) {
 	ctx := context.TODO()
 	logger := log.FromContext(ctx)
+	ctrl.Log.V(1).Info("这是 debug 日志")
+	ctrl.Log.Info("========================> ctrl.Log.Info()...")
+	ctrl.Log.V(0).Info("这是 info 日志")
 
 	// 1. 解析请求参数
 	params, err := parseRequestParams(ctx, c)
@@ -213,6 +217,8 @@ func parseRequestBody(c *gin.Context, obj *unstructured.Unstructured) error {
 
 // ========== 不同方法的处理逻辑 ==========
 func handleGet(ctx context.Context, c *gin.Context, p *requestParams) {
+	setCORSHeaders(c)
+
 	labelSelector := c.Query("labelSelector")
 	log.FromContext(ctx).Info("DEBUG selector", "labelSelector", labelSelector)
 
@@ -239,6 +245,8 @@ func handleGet(ctx context.Context, c *gin.Context, p *requestParams) {
 }
 
 func handlePost(ctx context.Context, c *gin.Context, p *requestParams, obj *unstructured.Unstructured) {
+	setCORSHeaders(c)
+
 	result, err := resourceService.CreateResource(ctx, p.Cluster, p.Group, p.Version, p.Resource, p.Namespace, obj)
 	if err != nil {
 		response.FailWithMessage(c, err.Error())
@@ -247,6 +255,8 @@ func handlePost(ctx context.Context, c *gin.Context, p *requestParams, obj *unst
 	c.JSON(http.StatusCreated, result)
 }
 func handlePut(ctx context.Context, c *gin.Context, p *requestParams, obj *unstructured.Unstructured) {
+	setCORSHeaders(c)
+
 	result, err := resourceService.UpdateResource(ctx, p.Cluster, p.Group, p.Version, p.Resource, p.Namespace, obj)
 	if err != nil {
 		response.FailWithMessage(c, err.Error())
@@ -255,6 +265,8 @@ func handlePut(ctx context.Context, c *gin.Context, p *requestParams, obj *unstr
 	c.JSON(http.StatusOK, result)
 }
 func handlePatch(ctx context.Context, c *gin.Context, p *requestParams, obj *unstructured.Unstructured) {
+	setCORSHeaders(c)
+
 	result, err := resourceService.PatchResource(ctx, p.Cluster, p.Group, p.Version, p.Resource, p.Namespace, p.Name, obj)
 	if err != nil {
 		response.FailWithMessage(c, err.Error())
@@ -263,10 +275,32 @@ func handlePatch(ctx context.Context, c *gin.Context, p *requestParams, obj *uns
 	c.JSON(http.StatusOK, result)
 }
 func handleDelete(ctx context.Context, c *gin.Context, p *requestParams) {
+	setCORSHeaders(c)
+
 	err := resourceService.DeleteResource(ctx, p.Cluster, p.Group, p.Version, p.Resource, p.Namespace, p.Name)
 	if err != nil {
 		response.FailWithMessage(c, err.Error())
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "资源删除成功"})
+}
+
+// 设置跨域头部:setCORSHeaders 是 CORS 跨域响应头
+// setCORSHeaders 设置标准 CORS 响应头
+func setCORSHeaders(c *gin.Context) {
+	ctrl.Log.Info("========================> 设置cors响应头...")
+	// ctrl.Log.V(1).Info("这是 debug 日志")
+	origin := c.Request.Header.Get("Origin")
+	if origin != "" {
+		fmt.Println("------------------------------------------> 动态代理接口 ProxyHandler 中没有设置 CORS 响应头，统一手动添加跨域响应头...")
+		c.Header("Access-Control-Allow-Origin", origin)                                    // 允许来源
+		c.Header("Access-Control-Allow-Credentials", "true")                               // 支持 Cookie、Token
+		c.Header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Token")   // 支持的请求头
+		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS") // 支持的方法
+		c.Header("Access-Control-Expose-Headers", "Content-Length, New-Token")             // 客户端可见的响应头
+		fmt.Println("------------------------------------------> 动态代理接口 ProxyHandler 中没有设置 CORS 响应头，统一手动添加跨域响应头结束")
+		ctrl.Log.Info("========================> 设置跨域响应头成功！！！！！！！！！！！！！！！！！！！！！！！！")
+	}
+	fmt.Printf("------------------------------------------> 动态代理接口 ProxyHandler 中设置 CORS 响应头信息 c.Request.Header.Get === Origin：%v \n", origin)
+	ctrl.Log.Info("========================> 设置跨域响应头成功", "origin", origin)
 }

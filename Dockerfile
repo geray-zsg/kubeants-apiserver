@@ -28,6 +28,8 @@ LABEL maintainer="Geray <geray.zhu@gmail.com>" \
     build.date=${BUILD_DATE}   
 WORKDIR /
 COPY --from=builder /workspace/kubeants-apiserver .
+EXPOSE 8080
+EXPOSE 8088
 USER 65532:65532
 
 ENTRYPOINT ["/kubeants-apiserver"]

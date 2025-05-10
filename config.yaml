@@ -1,19 +1,24 @@
 system:
-  port: ":8088"
+  port: ":8080"
 
 jwt:
-  secret: "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiSm9obiIsImFkbWluIjp0cnVlfQ.n-qvhsRi6C0zBGcKrMGv-qSZGUUssXTTbICvENxqDCjCL2ejSt62uTwemHZe4pLI_sNSr7FWEI2MKlqequemeg"
-  expiration: 7200  # // 单位：秒
+  secret: "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiSm9obiIsImFkbWluIjp0cnVlfQ.n-qvhsRi6C0zBGcKrMGv-qSZGUUssXTTbICvENxqDCjCL2ejSt62uTwemHZe4pLI_sNSr7FWEI2MKlqequemeg"  # 建议只保存密钥，不要存 token 全文
+  expiration: 7200  # 单位：秒
+
+log:
+  level: "debug"    # 支持：debug、info、warn、error
+  format: "console" # 可选：console（开发）或 json（生产）
+  file: ""          # 可选：写入文件的路径（默认空，即只输出到控制台）
 
 cors:
   enable: true
   allowedOrigins:
-   - "localhost:8080"
-   - "127.0.0.1:8080"
-   - "demo-mysql.10.179.25.1.nip.io"
-  # 设置Access-Control-Allow-Origin的默认的值
-  defaultOrigins: "http://demo-mysql.workbench/"
-  accessControlAllowCredentials: "true" # 是否允许浏览器发送跨域请求时携带认证信息（如Cookies和HTTP认证）
-  accessControlAllowHeaders: "Content-Type,AccessToken,X-CSRF-Token, Authorization, Token,X-Token,X-User-Id" # 指定服务器接受哪些头部字段作为跨域请求的一部分
-  accessControlAllowMethods: "POST, GET, OPTIONS,DELETE,PUT" # 指定服务器允许的HTTP请求方法
-  accessControlExposeHeaders: "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Content-Type, New-Token, New-Expires-At" # 指定哪些HTTP头部可以作为响应的一部分暴露给外部  
+    - "http://localhost:9528"
+    - "http://127.0.0.1:8080"
+    - "http://kubeants-apiserver.kubeants-system"
+    - "http://172.17.142.147:30001"
+  defaultOrigins: "http://localhost:9528"  # 默认允许的 Origin，建议开发环境使用 localhost
+  accessControlAllowCredentials: "true"
+  accessControlAllowHeaders: "Content-Type,AccessToken,X-CSRF-Token, Authorization, Token,X-Token,X-User-Id"
+  accessControlAllowMethods: "POST, GET, OPTIONS, DELETE, PUT"
+  accessControlExposeHeaders: "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Content-Type, New-Token, New-Expires-At"

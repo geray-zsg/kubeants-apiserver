@@ -1,0 +1,46 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: kubeants-apiserver
+  name: kubeants-apiserver
+  namespace: kubeants-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kubeants-apiserver
+  template:
+    metadata:
+      labels:
+        app: kubeants-apiserver
+    spec:
+      securityContext:
+        runAsUser: 0  # 以 root 用户运行
+        runAsGroup: 0
+      containers:
+        - image: "registry.cn-hangzhou.aliyuncs.com/geray/kubeants-apiserver:v1.7.3"
+          imagePullPolicy: Always
+          name: kubeants-apiserver
+          volumeMounts:
+            - name: kubeconfig-volume
+              mountPath: /root/.kube/config
+              subPath: config  # 如果 Secret 中只有一个 key，也可以省略 subPath，但推荐明确指定
+            - name: kubeants-apiserver
+              mountPath: /config.yaml
+              subPath: config.yaml
+      dnsPolicy: ClusterFirst
+      hostAliases:
+        - ip: 172.17.142.147
+          hostnames: 
+            - lb.kubesphere.local
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      volumes:
+        - name: kubeconfig-volume
+          secret:
+            secretName: kubeconfig  # 这里替换为你的 Secret 的名字
+        - name: kubeants-apiserver
+          configMap:
+            name: kubeants-apiserver
