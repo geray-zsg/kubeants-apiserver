@@ -7,11 +7,13 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"reflect"
 	"regexp"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"kubeants.io/middleware"
 	"kubeants.io/response"
@@ -228,6 +230,30 @@ func handleGet(ctx context.Context, c *gin.Context, p *requestParams) {
 			response.FailWithMessage(c, err.Error())
 			return
 		}
+		// 删除 managedFields
+		for i := range list.Items {
+			if metadata, ok := list.Items[i].Object["metadata"].(map[string]interface{}); ok {
+				delete(metadata, "managedFields")
+			}
+		}
+
+		typ, ok := util.GetStructTypeByGVR(p.Group, p.Version, p.Resource)
+		if ok {
+			listType := reflect.SliceOf(typ)
+			listPtr := reflect.New(listType).Interface()
+
+			err = util.UnstructuredListToStructList(list, listPtr)
+			if err != nil {
+				response.FailWithMessage(c, err.Error())
+				return
+			}
+
+			c.JSON(http.StatusOK, gin.H{
+				"items":      reflect.ValueOf(listPtr).Elem().Interface(),
+				"totalItems": reflect.ValueOf(listPtr).Elem().Len(),
+			})
+			return
+		}
 		resp := gin.H{
 			"items":      list,
 			"totalItems": len(list.Items),
@@ -240,6 +266,26 @@ func handleGet(ctx context.Context, c *gin.Context, p *requestParams) {
 			response.FailWithMessage(c, err.Error())
 			return
 		}
+		// 删除 managedFields
+		if metadata, ok := obj.Object["metadata"].(map[string]interface{}); ok {
+			delete(metadata, "managedFields")
+		}
+
+		// obj 为单个 unstructured.Unstructured 对象
+		typ, ok := util.GetStructTypeByGVR(p.Group, p.Version, p.Resource)
+		if ok {
+			objPtr := reflect.New(typ).Interface()
+			err = runtime.DefaultUnstructuredConverter.FromUnstructured(obj.Object, objPtr)
+			if err != nil {
+				response.FailWithMessage(c, err.Error())
+				return
+			}
+
+			c.JSON(http.StatusOK, objPtr)
+			return
+		}
+
+		// fallback: 原始 Unstructured 返回
 		c.JSON(http.StatusOK, obj)
 	}
 }
