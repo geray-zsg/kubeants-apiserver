@@ -16,6 +16,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"kubeants.io/middleware"
+	"kubeants.io/models"
 	"kubeants.io/response"
 	"kubeants.io/util"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -26,28 +27,27 @@ import (
 type ResourceApi struct{}
 
 // 定义请求参数
-type requestParams struct {
-	Cluster     string
-	Workspace   string
-	Group       string
-	Version     string
-	Resource    string
-	Namespace   string
-	Name        string
-	GVR         schema.GroupVersionResource
-	K8sVerb     string
-	IsList      bool
-	Username    string
-	SAToken     string
-	RequestBody []byte
-}
+// type requestParams struct {
+// 	Cluster     string
+// 	Workspace   string
+// 	Group       string
+// 	Version     string
+// 	Resource    string
+// 	Namespace   string
+// 	Name        string
+// 	GVR         schema.GroupVersionResource
+// 	K8sVerb     string
+// 	IsList      bool
+// 	Username    string
+// 	SAToken     string
+// 	RequestBody []byte
+// }
 
 // ProxyHandler 代理所有 HTTP 方法
 func (*ResourceApi) ProxyHandler(c *gin.Context) {
 	ctx := context.TODO()
 	logger := log.FromContext(ctx)
 	ctrl.Log.V(1).Info("这是 debug 日志")
-	ctrl.Log.Info("========================> ctrl.Log.Info()...")
 	ctrl.Log.V(0).Info("这是 info 日志")
 
 	// 1. 解析请求参数
@@ -57,35 +57,13 @@ func (*ResourceApi) ProxyHandler(c *gin.Context) {
 		response.FailWithMessage(c, err.Error())
 		return
 	}
-	logger.Info("接收到请求", "params", params)
+	ctrl.Log.V(1).Info("接收到请求", "params", params)
 
 	// 2. 非 admin 用户权限校验
 	if params.Username != "admin" {
-		// 定义豁免检查的资源组
-		exemptGroups := map[string]bool{
-			"workspace.kubeants.io":   true,
-			"userbinding.kubeants.io": true,
-		}
-		// 如果资源属于豁免组，检查请求方法
-		if exemptGroups[params.GVR.Group] {
-			// 允许 GET 和 LIST 方法跳过权限校验
-			if params.K8sVerb != "get" && params.K8sVerb != "list" {
-				// 非 GET/LIST 方法，进行权限校验
-				allowed, err := middleware.CheckResourcePermission(ctx, params.SAToken, params.GVR, params.K8sVerb, params.Namespace)
-				if err != nil {
-					logger.Error(err, "权限校验出错")
-					response.FailWithMessage(c, "权限校验失败")
-					return
-				}
-				if !allowed {
-					logger.Info("权限不足，当前用户无访问该资源权限")
-					response.FailWithMessage(c, "权限不足，当前用户无访问该资源权限")
-					return
-				}
-			}
-		} else {
-
-			// 非豁免资源，进行权限校验,k8s资源权限校验
+		// 非 admin 用户，检查是否是豁免资源（后期优化为角色）
+		if !middleware.IsExemptedResource(params) {
+			// 非豁免资源，执行权限校验
 			allowed, err := middleware.CheckResourcePermission(ctx, params.SAToken, params.GVR, params.K8sVerb, params.Namespace)
 			if err != nil {
 				logger.Error(err, "权限校验出错")
@@ -131,7 +109,7 @@ func (*ResourceApi) ProxyHandler(c *gin.Context) {
 }
 
 // ========== 参数解析 ==========
-func parseRequestParams(ctx context.Context, c *gin.Context) (*requestParams, error) {
+func parseRequestParams(ctx context.Context, c *gin.Context) (*models.RequestParams, error) {
 	logger := log.FromContext(ctx)
 	name := strings.Trim(c.Param("name"), "/")
 	isList := name == ""
@@ -170,7 +148,7 @@ func parseRequestParams(ctx context.Context, c *gin.Context) (*requestParams, er
 		"query", c.Request.URL.RawQuery,
 	)
 
-	return &requestParams{
+	return &models.RequestParams{
 		Cluster:   c.Param("cluster"),
 		Workspace: c.Param("workspace"),
 		Group:     group,
@@ -218,7 +196,7 @@ func parseRequestBody(c *gin.Context, obj *unstructured.Unstructured) error {
 }
 
 // ========== 不同方法的处理逻辑 ==========
-func handleGet(ctx context.Context, c *gin.Context, p *requestParams) {
+func handleGet(ctx context.Context, c *gin.Context, p *models.RequestParams) {
 	setCORSHeaders(c)
 
 	labelSelector := c.Query("labelSelector")
@@ -290,7 +268,7 @@ func handleGet(ctx context.Context, c *gin.Context, p *requestParams) {
 	}
 }
 
-func handlePost(ctx context.Context, c *gin.Context, p *requestParams, obj *unstructured.Unstructured) {
+func handlePost(ctx context.Context, c *gin.Context, p *models.RequestParams, obj *unstructured.Unstructured) {
 	setCORSHeaders(c)
 
 	result, err := resourceService.CreateResource(ctx, p.Cluster, p.Group, p.Version, p.Resource, p.Namespace, obj)
@@ -300,7 +278,7 @@ func handlePost(ctx context.Context, c *gin.Context, p *requestParams, obj *unst
 	}
 	c.JSON(http.StatusCreated, result)
 }
-func handlePut(ctx context.Context, c *gin.Context, p *requestParams, obj *unstructured.Unstructured) {
+func handlePut(ctx context.Context, c *gin.Context, p *models.RequestParams, obj *unstructured.Unstructured) {
 	setCORSHeaders(c)
 
 	result, err := resourceService.UpdateResource(ctx, p.Cluster, p.Group, p.Version, p.Resource, p.Namespace, obj)
@@ -310,7 +288,7 @@ func handlePut(ctx context.Context, c *gin.Context, p *requestParams, obj *unstr
 	}
 	c.JSON(http.StatusOK, result)
 }
-func handlePatch(ctx context.Context, c *gin.Context, p *requestParams, obj *unstructured.Unstructured) {
+func handlePatch(ctx context.Context, c *gin.Context, p *models.RequestParams, obj *unstructured.Unstructured) {
 	setCORSHeaders(c)
 
 	result, err := resourceService.PatchResource(ctx, p.Cluster, p.Group, p.Version, p.Resource, p.Namespace, p.Name, obj)
@@ -320,7 +298,7 @@ func handlePatch(ctx context.Context, c *gin.Context, p *requestParams, obj *uns
 	}
 	c.JSON(http.StatusOK, result)
 }
-func handleDelete(ctx context.Context, c *gin.Context, p *requestParams) {
+func handleDelete(ctx context.Context, c *gin.Context, p *models.RequestParams) {
 	setCORSHeaders(c)
 
 	err := resourceService.DeleteResource(ctx, p.Cluster, p.Group, p.Version, p.Resource, p.Namespace, p.Name)
@@ -338,15 +316,12 @@ func setCORSHeaders(c *gin.Context) {
 	// ctrl.Log.V(1).Info("这是 debug 日志")
 	origin := c.Request.Header.Get("Origin")
 	if origin != "" {
-		fmt.Println("------------------------------------------> 动态代理接口 ProxyHandler 中没有设置 CORS 响应头，统一手动添加跨域响应头...")
+		ctrl.Log.V(1).Info("========================> 设置跨域响应头成功", "origin", origin)
 		c.Header("Access-Control-Allow-Origin", origin)                                    // 允许来源
 		c.Header("Access-Control-Allow-Credentials", "true")                               // 支持 Cookie、Token
 		c.Header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Token")   // 支持的请求头
 		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS") // 支持的方法
 		c.Header("Access-Control-Expose-Headers", "Content-Length, New-Token")             // 客户端可见的响应头
-		fmt.Println("------------------------------------------> 动态代理接口 ProxyHandler 中没有设置 CORS 响应头，统一手动添加跨域响应头结束")
-		ctrl.Log.Info("========================> 设置跨域响应头成功！！！！！！！！！！！！！！！！！！！！！！！！")
 	}
-	fmt.Printf("------------------------------------------> 动态代理接口 ProxyHandler 中设置 CORS 响应头信息 c.Request.Header.Get === Origin：%v \n", origin)
-	ctrl.Log.Info("========================> 设置跨域响应头成功", "origin", origin)
+	ctrl.Log.V(0).Info("========================> 设置跨域响应头成功！！！！！！！！！！！！！！！！！！！！！！！！")
 }

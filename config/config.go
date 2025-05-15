@@ -20,11 +20,24 @@ type Log struct {
 	File   string `mapstructure:"file" json:"file" yaml:"file"`       // 日志写入文件路径
 }
 
+// 权限控制
+type ExemptResource struct {
+	Group    string   `mapstructure:"group" json:"group" yaml:"group"`
+	Version  string   `mapstructure:"version" json:"version" yaml:"version"`
+	Resource string   `mapstructure:"resource" json:"resource" yaml:"resource"`
+	Verbs    []string `mapstructure:"verbs" json:"verbs" yaml:"verbs"`
+}
+
+type Authz struct {
+	ExemptResources []ExemptResource `mapstructure:"exemptResources" json:"exemptResources" yaml:"exemptResources"`
+}
+
 type Server struct {
 	System System `mapstructure:"system"`
 	JWT    JWT    `mapstructure:"jwt"`
 	Cors   Cors   `mapstructure:"cors"`
 	Log    Log    `mapstructure:"log"`
+	Authz  Authz  `mapstructure:"authz"`
 }
 
 /*

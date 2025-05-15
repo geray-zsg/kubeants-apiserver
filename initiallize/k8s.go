@@ -1,12 +1,12 @@
 package initiallize
 
 import (
-	"fmt"
-
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	kubeantconfig "kubeants.io/config"
+
+	ctrl "sigs.k8s.io/controller-runtime"
 )
 
 func K8S() {
@@ -17,11 +17,10 @@ func K8S() {
 	if err != nil {
 		panic(err.Error())
 	}
-	fmt.Println("kubeconfig apiserverHost:", config.Host)
 	// create the clientset
 	clientSet, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		fmt.Printf("Failed to create clientset: %v", err)
+		ctrl.Log.V(2).Error(err, "创建客户端clientSet失败")
 		panic(err.Error())
 	}
 	kubeantconfig.KubeClientSet = clientSet
@@ -29,7 +28,7 @@ func K8S() {
 	// create the dynamicClient
 	dynameicClient, err := dynamic.NewForConfig(config)
 	if err != nil {
-		fmt.Printf("Failed to create dynamicClient: %v", err)
+		ctrl.Log.V(2).Error(err, "创建动态客户端dynameicClient失败")
 		panic(err.Error())
 	}
 	kubeantconfig.KubeDynamicClient = dynameicClient

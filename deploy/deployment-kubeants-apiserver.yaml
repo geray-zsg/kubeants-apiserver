@@ -20,7 +20,7 @@ spec:
         runAsUser: 0  # 以 root 用户运行
         runAsGroup: 0
       containers:
-        - image: "registry.cn-hangzhou.aliyuncs.com/geray/kubeants-apiserver:v1.7.3"
+        - image: "registry.cn-hangzhou.aliyuncs.com/geray/kubeants-apiserver:v1.7.5"
           imagePullPolicy: Always
           name: kubeants-apiserver
           volumeMounts:

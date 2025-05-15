@@ -31,20 +31,6 @@ func Cors(c *gin.Context) {
 	}
 	setCorsHeaders(c, allowedOrigin)
 
-	// // 🧠 只在跨域被拒绝时打印详细日志
-	// if !isAllowed {
-	// 	fmt.Println("\n========== [CORS WARNING: origin not allowed] ==========")
-	// 	fmt.Printf("Incoming Origin: %s\n", origin)
-	// 	fmt.Printf("Trimmed Origin:  %s\n", trimmedOrigin)
-	// 	fmt.Printf("Allowed Origins: %v\n", allowedOrigins)
-	// 	fmt.Printf("Method:          %s\n", method)
-	// 	fmt.Println("Request Headers:")
-	// 	for k, v := range c.Request.Header {
-	// 		fmt.Printf("  %s: %v\n", k, v)
-	// 	}
-	// 	fmt.Println("=========================================================")
-	// }
-
 	// OPTIONS 预检请求：立即返回
 	if method == "OPTIONS" {
 		c.AbortWithStatus(http.StatusNoContent)

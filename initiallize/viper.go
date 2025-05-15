@@ -22,7 +22,4 @@ func Viper() {
 	if err := v.Unmarshal(&config.CONF); err != nil {
 		panic(fmt.Errorf("配置绑定失败: %w", err))
 	}
-
-	// 打印调试
-	fmt.Printf("==============================> [Viper Loaded Config enable]: %+v\n", config.CONF.Cors.Enable)
 }

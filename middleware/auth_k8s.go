@@ -11,6 +11,8 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"kubeants.io/config"
+	"kubeants.io/models"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
@@ -53,7 +55,6 @@ func CheckResourcePermission(ctx context.Context, saToken string, gvr schema.Gro
 
 // 用 saToken 生成 clientSet
 func NewClientWithSAToken(saToken string) (*kubernetes.Clientset, error) {
-	// fmt.Println("kubeconfig.cluster.server:", config.Kubeconfig)
 	config := &rest.Config{
 		Host:        config.Kubeconfig, // 这里从已有的配置中获取 API Server 地址
 		BearerToken: saToken,
@@ -62,4 +63,22 @@ func NewClientWithSAToken(saToken string) (*kubernetes.Clientset, error) {
 		},
 	}
 	return kubernetes.NewForConfig(config)
+}
+
+// 判断是否为豁免资源的函数
+func IsExemptedResource(params *models.RequestParams) bool {
+	for _, r := range config.CONF.Authz.ExemptResources {
+		if (r.Group == "*" || r.Group == params.GVR.Group) &&
+			(r.Version == "" || r.Version == params.GVR.Version) &&
+			(r.Resource == "*" || r.Resource == params.GVR.Resource) {
+			for _, verb := range r.Verbs {
+				if verb == params.K8sVerb {
+					ctrl.Log.V(0).Info("资源豁免组检查通过", "gvr", params.GVR)
+					return true
+				}
+			}
+		}
+	}
+	ctrl.Log.V(1).Info("资源豁免组检查未通过", "gvr", params.GVR)
+	return false
 }

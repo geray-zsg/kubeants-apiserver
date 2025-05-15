@@ -17,8 +17,25 @@ cors:
     - "http://127.0.0.1:8080"
     - "http://kubeants-apiserver.kubeants-system"
     - "http://172.17.142.147:30001"
-  defaultOrigins: "http://localhost:9528"  # 默认允许的 Origin，建议开发环境使用 localhost
+  defaultOrigins: "http://172.17.142.147:30001"  # 默认允许的 Origin，建议开发环境使用 localhost
   accessControlAllowCredentials: "true"
   accessControlAllowHeaders: "Content-Type,AccessToken,X-CSRF-Token, Authorization, Token,X-Token,X-User-Id"
   accessControlAllowMethods: "POST, GET, OPTIONS, DELETE, PUT"
   accessControlExposeHeaders: "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Content-Type, New-Token, New-Expires-At"
+
+# 权限控制配置：注：可以使用 * 通配符，表示所有 resource 或 verbs。
+authz:
+  exemptResources:
+    - group: ""
+      version: "v1"
+      resource: "namespaces"
+      verbs: ["get", "list"]
+    - group: "workspace.kubeants.io"
+      resource: "*"
+      verbs: ["get", "list"]
+    - group: "userbinding.kubeants.io"
+      resource: "*"
+      verbs: ["get", "list"]
+    - group: "rbac.kubeants.io"
+      resource: "roletemplates"
+      verbs: ["get", "list"]

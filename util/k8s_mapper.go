@@ -17,6 +17,7 @@ type GVRKey struct {
 
 var GVRToTypeMap = map[GVRKey]reflect.Type{
 	{"", "v1", "pods"}:             reflect.TypeOf(v1.Pod{}),
+	{"", "v1", "namespaces"}:       reflect.TypeOf(v1.Namespace{}),
 	{"apps", "v1", "deployments"}:  reflect.TypeOf(appsv1.Deployment{}),
 	{"apps", "v1", "statefulsets"}: reflect.TypeOf(appsv1.StatefulSet{}),
 

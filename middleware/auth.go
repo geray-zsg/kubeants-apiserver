@@ -20,6 +20,7 @@ import (
 	"kubeants.io/response"
 	"kubeants.io/service"
 	"kubeants.io/util"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
@@ -199,21 +200,21 @@ func validateLocalUser(username, password string) (isTrue bool, token string, er
 	// 获取用户资源
 	user, err := config.KubeDynamicClient.Resource(userGVR).Get(context.TODO(), username, v1.GetOptions{})
 	if err != nil {
-		fmt.Println("Failed to get user for k8s:", err)
+		ctrl.Log.V(2).Error(err, "Failed to get user for k8s")
 		return false, "", fmt.Errorf("failed to get user for k8s: %w", err)
 	}
 
 	// 获取 bcrypt 加密后的密码哈希
 	passwordHash, found, _ := unstructured.NestedString(user.UnstructuredContent(), "spec", "password")
 	if !found {
-		fmt.Printf("✅ Password not found in user spec,k8s资源user[%v]中没有对应password字段", user)
+		ctrl.Log.V(0).Info("✅ Password not found in user spec", "User", user)
 		return false, "", fmt.Errorf("❌ password not found in user spec,k8s资源user[%v]中没有对应password字段: %w", username, err)
 	}
 
 	// 使用 bcrypt 验证密码
 	err = bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(password))
 	if err != nil {
-		fmt.Println("✅ Password verification failed[密码不正确，请检查您的密码]:", err)
+		ctrl.Log.V(2).Error(err, "❌ Password verification failed[密码不正确，请检查您的密码]")
 		return false, "", fmt.Errorf("❌ password verification failed[密码不正确，请检查您的密码]: %w", err)
 	}
 
@@ -225,7 +226,7 @@ func validateLocalUser(username, password string) (isTrue bool, token string, er
 	// 获取 ServiceAccount 所在namespace
 	saNamespace, found, _ := unstructured.NestedString(user.UnstructuredContent(), "status", "serviceAccount")
 	if !found || saNamespace == "" {
-		fmt.Printf("✅ user[%v] status 中没有对应serviceAccount namespace字段，默认使用kubeants-system", username)
+		ctrl.Log.V(0).Info("✅ status 中没有对应serviceAccount namespace字段，默认使用kubeants-system", "username", username)
 		saNamespace = "kubeants-system"
 	}
 

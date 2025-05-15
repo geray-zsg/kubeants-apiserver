@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -47,8 +46,6 @@ func (s *ResourceService) ListResources(ctx context.Context, cluster, group, ver
 		listOptions.LabelSelector = labelSelector
 	}
 
-	// fmt.Println("listOptions---------->:", listOptions)
-
 	return config.KubeDynamicClient.Resource(gvr).Namespace(namespace).List(ctx, listOptions)
 }
 
@@ -88,7 +85,6 @@ func (s *ResourceService) PatchResource(ctx context.Context, cluster, group, ver
 
 	gvr := getGVR(group, version, resource)
 	// 获取资源名称
-	fmt.Println("obj", obj)
 	if name == "" {
 		name = obj.GetName()
 	}

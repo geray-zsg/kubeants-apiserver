@@ -10,6 +10,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	k8serror "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	ctrl "sigs.k8s.io/controller-runtime"
 )
 
 type PodService struct{}
@@ -65,7 +66,7 @@ func (p *PodService) DeleteAndCreatePod(ctx context.Context, k8sPod *corev1.Pod)
 
 	} else if !k8serror.IsNotFound(err) {
 		// 其他错误
-		fmt.Println(geteOldPod)
+		ctrl.Log.V(2).Error(err, "服务异常", "pod", geteOldPod)
 		return nil, err
 	}
 
