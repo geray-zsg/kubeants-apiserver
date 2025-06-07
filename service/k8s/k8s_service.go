@@ -11,6 +11,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"kubeants.io/config"
+	"kubeants.io/util"
 )
 
 type ResourceService struct{}
@@ -106,8 +107,10 @@ func (s *ResourceService) PatchResource(ctx context.Context, cluster, group, ver
 
 // DeleteResource 删除资源
 func (s *ResourceService) DeleteResource(ctx context.Context, cluster, group, version, resource, namespace, name string) error {
-
 	gvr := getGVR(group, version, resource)
+	if util.IsClusterScopedResource(gvr) {
+		return config.KubeDynamicClient.Resource(gvr).Delete(ctx, name, metav1.DeleteOptions{})
+	}
 	return config.KubeDynamicClient.Resource(gvr).Namespace(namespace).Delete(ctx, name, metav1.DeleteOptions{})
 }
 

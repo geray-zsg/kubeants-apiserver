@@ -39,3 +39,4 @@ authz:
     - group: "rbac.kubeants.io"
       resource: "roletemplates"
       verbs: ["get", "list"]
+

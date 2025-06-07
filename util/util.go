@@ -7,6 +7,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"gopkg.in/yaml.v2"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	ctrl "sigs.k8s.io/controller-runtime"
 )
 
 func RequestUnmarshalForJSONORYAML[T any](c *gin.Context) (*T, error) {
@@ -112,3 +114,16 @@ func HTTPMethodToK8sVerb(method string, isResourceList bool, queryParams map[str
 // 	outVal.Elem().Set(result)
 // 	return nil
 // }
+
+// 需在 DeleteResource() 之前判断一下 GVR 是否是 cluster-scope 类型，cluster-scope 类型的资源例如namespace，delete时不能带 .Namespace(...)，否则就会访问错误的路径，导致 404。
+func IsClusterScopedResource(gvr schema.GroupVersionResource) bool {
+
+	// 可根据内建资源硬编码，也可用 discovery 做动态判断
+	if gvr.Group == "" && gvr.Version == "v1" && gvr.Resource == "namespaces" {
+		ctrl.Log.V(0).Info("当前请求资源属于cluster-scope类型")
+		return true
+	}
+	// 可添加更多内建资源判断
+	ctrl.Log.V(0).Info("当前请求资源不属于cluster-scope类型")
+	return false
+}
