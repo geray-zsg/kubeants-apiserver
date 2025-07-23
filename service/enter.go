@@ -10,6 +10,7 @@ type ServiceGroup struct {
 	PodDerviceGroup       pod.PodServiceGroup
 	NamespaceServiceGroup namespace.NamespaceServiceGroup
 	ResourceServiceGroup  k8s.GetResourcesGroup
+	LogService            k8s.LogService
 }
 
 var ServiceGroupApp = new(ServiceGroup)

@@ -13,6 +13,7 @@ func (*K8SRouter) InitK8SRouter(r *gin.Engine) {
 
 	// 统一使用client-go的ForResource 方案转发k8s原生接口
 	k8sResourceApiGroup := api.ApiGroupApp.K8sResourceApi
+	k8sLogApiGroup := api.ApiGroupApp.LogApi
 	// ========== 集群级资源：cluster-scoped ==========
 	cluster := r.Group("/gapi/cluster/:cluster")
 	cluster.Use(middleware.AuthMiddleware())
@@ -38,6 +39,9 @@ func (*K8SRouter) InitK8SRouter(r *gin.Engine) {
 	workspace.Any("/api/:version/:resource/:name", k8sResourceApiGroup.ProxyHandler)
 	workspace.Any("/apis/:group/:version/:resource", k8sResourceApiGroup.ProxyHandler)
 	workspace.Any("/apis/:group/:version/:resource/:name", k8sResourceApiGroup.ProxyHandler)
+
+	// Pod日志接口
+	workspace.GET("/api/v1/namespaces/:namespace/pods/:pod/log", k8sLogApiGroup.GetPodLogs)
 
 	// 认证接口
 	// r.Use(middleware.AuthMiddleware())
