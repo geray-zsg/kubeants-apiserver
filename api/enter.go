@@ -11,6 +11,7 @@ type ApiGroup struct {
 	K8SApiGroup     k8s.K8SApi
 	K8sResourceApi  k8s.ResourceApi // 所有k8s资源的API
 	LogApi          k8s.LogApi
+	ExecApi         k8s.ExecApi
 	KaApi           kubeants.KubeantsApi // kubeants自定义资源接口
 }
 

@@ -11,6 +11,7 @@ type ServiceGroup struct {
 	NamespaceServiceGroup namespace.NamespaceServiceGroup
 	ResourceServiceGroup  k8s.GetResourcesGroup
 	LogService            k8s.LogService
+	ExecService           k8s.ExecService
 }
 
 var ServiceGroupApp = new(ServiceGroup)

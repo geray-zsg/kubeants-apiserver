@@ -17,6 +17,9 @@ func K8S() {
 	if err != nil {
 		panic(err.Error())
 	}
+	// ✅ 设置 KubeRestConfig
+	kubeantconfig.KubeRestConfig = config
+
 	// create the clientset
 	clientSet, err := kubernetes.NewForConfig(config)
 	if err != nil {
