@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"kubeants.io/response"
 	"kubeants.io/service/k8s"
+	ctrl "sigs.k8s.io/controller-runtime"
 )
 
 type ExecApi struct{}
@@ -22,6 +23,7 @@ func (*ExecApi) ExecContainer(c *gin.Context) {
 	}
 	defer wsConn.Close()
 
+	ctrl.Log.Info("========================> 进入容器终端...")
 	err = k8s.NewExecService().ExecToPod(wsConn, namespace, podName, container, command)
 	if err != nil {
 		wsConn.WriteMessage(1, []byte("连接失败："+err.Error()))
