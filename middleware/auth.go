@@ -101,6 +101,16 @@ func AuthMiddleware() gin.HandlerFunc {
 	logger.Info("====> AuthMiddleware is called")
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
+
+		// ✅ 如果 Header 中没有 Authorization，尝试从 URL 参数中获取 token
+		if authHeader == "" {
+			queryToken := c.Query("token")
+			if queryToken != "" {
+				// 补全成标准 Bearer 形式
+				authHeader = "Bearer " + queryToken
+			}
+		}
+		// 如果依然没有 token，返回 401
 		if authHeader == "" {
 			logger.Error(gin.Error{Err: fmt.Errorf("authorization header is empty")}, "[认证失败] Authorization header is empty")
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authorization header missing"})
